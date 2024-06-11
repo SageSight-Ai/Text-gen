@@ -1,15 +1,20 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
 import os
+from fastapi import FastAPI
+from pydantic import BaseModel
 import google.generativeai as genai
 
-# Set up the environment variable for the API key
+# Configure Gemini API
 os.environ["GEMINI_API_KEY"] = "AIzaSyB6nT_Ib5cnSSZgnQpcBialvlcZG7UcJi4"
-
-# Configure the Generative AI client
 genai.configure(api_key=os.environ["GEMINI_API_KEY"])
 
-# Create the model configuration
+# Create FastAPI app instance
+app = FastAPI()
+
+# Define request body model
+class Message(BaseModel):
+    input_text: str
+
+# Initialize GenerativeModel
 generation_config = {
     "temperature": 1,
     "top_p": 0.95,
@@ -18,33 +23,19 @@ generation_config = {
     "response_mime_type": "text/plain",
 }
 
-# Initialize the model
 model = genai.GenerativeModel(
     model_name="gemini-1.5-flash",
     generation_config=generation_config,
 )
 
-# Initialize the FastAPI app
-app = FastAPI()
+# Define endpoint for chat
+@app.post("/chat/")
+async def chat(message: Message):
+    # Start chat session
+    chat_session = model.start_chat(history=[])
 
-# Define a Pydantic model for the input data
-class InputText(BaseModel):
-    input_text: str
+    # Send message to chat session
+    response = chat_session.send_message(message.input_text)
 
-@app.post("/generate")
-async def generate_text(data: InputText):
-    try:
-        # Start the chat session
-        chat_session = model.start_chat(history=[])
-        
-        # Send the input message
-        response = chat_session.send_message(data.input_text)
-        
-        # Return the response text
-        return {"response": response.text}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.get("/")
-async def root():
-    return {"message": "Welcome to the Generative AI Text Generation API"}
+    # Return response text
+    return {"response": response.text}
