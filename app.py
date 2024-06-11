@@ -21,8 +21,6 @@ generation_config = {
 model = genai.GenerativeModel(
     model_name="gemini-1.5-flash",
     generation_config=generation_config,
-    # safety_settings = Adjust safety settings if needed
-    # See https://ai.google.dev/gemini-api/docs/safety-settings
 )
 
 # Initialize the FastAPI app
@@ -42,7 +40,6 @@ async def generate_text(input_text: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Add a root endpoint
 @app.get("/")
 async def root():
     return {"message": "Welcome to the Generative AI Text Generation API"}
