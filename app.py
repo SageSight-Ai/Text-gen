@@ -1,9 +1,10 @@
 from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
 import os
 import google.generativeai as genai
 
 # Set up the environment variable for the API key
-os.environ["GEMINI_API_KEY"] = "AIzaSyB6nT_Ib5cnSSZgnQpcBialvlcZG7UcJi4"
+os.environ["GEMINI_API_KEY"] = "YOUR_API_KEY_HERE"
 
 # Configure the Generative AI client
 genai.configure(api_key=os.environ["GEMINI_API_KEY"])
@@ -26,14 +27,18 @@ model = genai.GenerativeModel(
 # Initialize the FastAPI app
 app = FastAPI()
 
+# Define a Pydantic model for the input data
+class InputText(BaseModel):
+    input_text: str
+
 @app.post("/generate")
-async def generate_text(input_text: str):
+async def generate_text(data: InputText):
     try:
         # Start the chat session
         chat_session = model.start_chat(history=[])
         
         # Send the input message
-        response = chat_session.send_message(input_text)
+        response = chat_session.send_message(data.input_text)
         
         # Return the response text
         return {"response": response.text}
