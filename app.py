@@ -2,6 +2,8 @@ import os
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import google.generativeai as genai
+import uvicorn
+
 
 # Initialize the FastAPI app
 app = FastAPI()
@@ -43,7 +45,3 @@ def chat(input_message: InputMessage):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Run the application using `uvicorn` if the script is executed directly
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
