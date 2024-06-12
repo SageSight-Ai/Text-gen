@@ -1,20 +1,16 @@
 import os
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import google.generativeai as genai
 
-# Configure Gemini API
+# Initialize the FastAPI app
+app = FastAPI()
+
+# Configure the Generative AI API key
 os.environ["GEMINI_API_KEY"] = "AIzaSyB6nT_Ib5cnSSZgnQpcBialvlcZG7UcJi4"
 genai.configure(api_key=os.environ["GEMINI_API_KEY"])
 
-# Create FastAPI app instance
-app = FastAPI()
-
-# Define request body model
-class Message(BaseModel):
-    input_text: str
-
-# Initialize GenerativeModel
+# Create the generative model
 generation_config = {
     "temperature": 1,
     "top_p": 0.95,
@@ -28,14 +24,26 @@ model = genai.GenerativeModel(
     generation_config=generation_config,
 )
 
-# Define endpoint for chat
-@app.post("/chat/")
-async def chat(message: Message):
-    # Start chat session
-    chat_session = model.start_chat(history=[])
+# Define the input and output data models
+class InputMessage(BaseModel):
+    message: str
 
-    # Send message to chat session
-    response = chat_session.send_message(message.input_text)
+class OutputMessage(BaseModel):
+    response: str
 
-    # Return response text
-    return {"response": response.text}
+# Define the chat endpoint
+@app.post("/chat", response_model=OutputMessage)
+def chat(input_message: InputMessage):
+    try:
+        chat_session = model.start_chat(
+            history=[]
+        )
+        response = chat_session.send_message(input_message.message)
+        return OutputMessage(response=response.text)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Run the application using `uvicorn` if the script is executed directly
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
