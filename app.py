@@ -1,4 +1,5 @@
 import os
+import re
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import google.generativeai as genai
@@ -23,8 +24,6 @@ generation_config = {
 model = genai.GenerativeModel(
     model_name="gemini-1.5-flash",
     generation_config=generation_config,
-    # Adjust safety settings if needed
-    # safety_settings = {}
 )
 
 # Define a Pydantic model for the input
@@ -33,9 +32,21 @@ class InputModel(BaseModel):
 
 app = FastAPI()
 
+def sanitize_input(input_text: str) -> str:
+    """
+    Sanitize the input text by removing or escaping problematic characters.
+    """
+    # Remove newlines and unwanted characters
+    sanitized_text = re.sub(r'[\x00-\x1f\x7f-\x9f]', '', input_text)
+    return sanitized_text
+
 @app.post("/generate")
 async def generate_response(input_model: InputModel):
     try:
+        # Sanitize the input text
+        sanitized_input_text = sanitize_input(input_model.input_text)
+        logging.info(f"Sanitized input: {sanitized_input_text}")
+
         # Start a chat session
         chat_session = model.start_chat(
             history=[
@@ -43,8 +54,10 @@ async def generate_response(input_model: InputModel):
             ]
         )
 
-        # Send the input message to the model
-        response = chat_session.send_message(input_model.input_text)
+        # Send the sanitized input message to the model
+        response = chat_session.send_message(sanitized_input_text)
+
+        logging.info(f"Model response: {response.text}")
 
         return {"response": response.text}
 
