@@ -2,6 +2,10 @@ import os
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import google.generativeai as genai
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
 
 # Set your GEMINI API Key
 os.environ["GEMINI_API_KEY"] = "AIzaSyB6nT_Ib5cnSSZgnQpcBialvlcZG7UcJi4"
@@ -44,8 +48,12 @@ async def generate_response(input_model: InputModel):
 
         return {"response": response.text}
 
+    except genai.errors.GeminiAPIError as e:
+        logging.error(f"API error: {e}")
+        raise HTTPException(status_code=502, detail="API Error")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logging.error(f"Unexpected error: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
 if __name__ == "__main__":
     import uvicorn
