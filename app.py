@@ -1,6 +1,6 @@
 import os
 import re
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel
 import google.generativeai as genai
 import logging
@@ -67,6 +67,20 @@ async def generate_response(input_model: InputModel):
     except Exception as e:
         logging.error(f"Unexpected error: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
+
+@app.middleware("http")
+async def add_process_time_header(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Process-Time"] = str(time.time() - request.state.start_time)
+    return response
+
+@app.middleware("http")
+async def log_request_data(request: Request, call_next):
+    request.state.start_time = time.time()
+    response = await call_next(request)
+    process_time = time.time() - request.state.start_time
+    logging.info(f"Request: {request.method} {request.url} - Process time: {process_time:.4f}s")
+    return response
 
 if __name__ == "__main__":
     import uvicorn
