@@ -10,7 +10,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 
 # Set your GEMINI API Key
-os.environ["GEMINI_API_KEY"] = "AIzaSyB6nT_Ib5cnSSZgnQpcBialvlcZG7UcJi4"
+os.environ["GEMINI_API_KEY"] = "YOUR_GEMINI_API_KEY"
 genai.configure(api_key=os.environ["GEMINI_API_KEY"])
 
 # Configure the generative model
@@ -71,6 +71,7 @@ async def generate_response(input_model: InputModel):
 
 @app.middleware("http")
 async def add_process_time_header(request: Request, call_next):
+    request.state.start_time = time.time()
     response = await call_next(request)
     response.headers["X-Process-Time"] = str(time.time() - request.state.start_time)
     return response
