@@ -23,7 +23,7 @@ generation_config = {
 }
 
 model = genai.GenerativeModel(
-    model_name=" gemini-1.5-pro-exp-0801",
+    model_name="gemini-1.5-pro-exp-0801",
     generation_config=generation_config,
 )
 
@@ -62,9 +62,6 @@ async def generate_response(input_model: InputModel):
 
         return {"response": response.text}
 
-    except genai.errors.GeminiAPIError as e:
-        logging.error(f"API error: {e}")
-        raise HTTPException(status_code=502, detail="API Error")
     except Exception as e:
         logging.error(f"Unexpected error: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
