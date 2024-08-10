@@ -23,7 +23,7 @@ generation_config = {
 }
 
 model = genai.GenerativeModel(
-    model_name="gemini-1.5-flash",
+    model_name=" gemini-1.5-pro-exp-0801",
     generation_config=generation_config,
 )
 
