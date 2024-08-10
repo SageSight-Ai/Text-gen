@@ -10,7 +10,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 
 # Set your GEMINI API Key
-os.environ["GEMINI_API_KEY"] = "YOUR_GEMINI_API_KEY"
+os.environ["GEMINI_API_KEY"] = "AIzaSyCzmcLIlYR0kUsrZmTHolm_qO8yzPaaUNk"
 genai.configure(api_key=os.environ["GEMINI_API_KEY"])
 
 # Configure the generative model
